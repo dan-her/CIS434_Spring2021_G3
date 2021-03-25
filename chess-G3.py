@@ -1,11 +1,10 @@
 # !usr/bin/python
-import chess as ch
+import chess
 import tkinter as tk
 
 def startup():
     # initialize the board
-	board = ch.Board()
-
+    board = chess.Board()
     turn = 0
     print("Whee!")
 
