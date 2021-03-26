@@ -1,0 +1,5 @@
+license for chess pieces:
+CC BY-SA 3.0
+Cburnett and JohnPablok
+https://opengameart.org/content/chess-pieces-and-board-squares
+https://creativecommons.org/licenses/by-sa/3.0/
