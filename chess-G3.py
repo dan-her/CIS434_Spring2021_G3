@@ -21,7 +21,6 @@ def startup():
         if (board.is_checkmate()):
             print("g'over")
             sys.exit()
-        
         print(board)
         
 
