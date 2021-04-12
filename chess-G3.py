@@ -50,7 +50,7 @@ def InitWindow():
 	root = tk.Tk()
 	root.geometry('768x640')
 	root.title('Chess')
-	root.iconbitmap('assets//icon.ico')
+	#root.iconbitmap('assets//icon.ico')
 	root.configure(background='grey7')
 	root.bind('<Escape>', lambda e: root.destroy())
 	return root
