@@ -1,10 +1,13 @@
 import tkinter as tk
+from tkinter import *
 import chess
 from PIL import ImageTk, Image
 
 # global variables
 squaresCount = 0 # for gameBackend
 initPos = '' # for gameBackend
+
+
 
 class gameBackend():
     def __init__(self, board):
@@ -20,6 +23,7 @@ class gameBackend():
             if (chess.Move.from_uci(initPos) in self.board.legal_moves): # check if the move is legal
                 x = chess.Move.from_uci(initPos) # create the move
                 self.board.push(x) # put the move on the board
+                clickt(initPos)
             else:
                 print("error: bad move")
             if (self.board.is_checkmate()):
@@ -84,11 +88,21 @@ def InitWindow():
 	root.bind('<Escape>', lambda e: root.destroy())
 	return root
     
+def clickt(item): # authored by curtis gach
+    mylist.insert(END, item) # authored by curtis gach
 
 if __name__ == '__main__':
 	root = InitWindow()
 	backendBoard = gameBackend(chess.Board()) # init backend board
-	chessboard = ChessBoardGUI(root)
+	boardFrame = Frame(root, padx='5', pady='5') # authored by curtis gach
+	boardFrame.grid(row = 0, column = 0, padx=10, pady=10) # authored by curtis gach
+	chessboard = ChessBoardGUI(boardFrame)
+	historyFrame = LabelFrame(root, text="history frame", padx = 5, pady = 5) # authored by curtis gach
+	historyFrame.grid(row = 0, column = 1, padx=10, pady=10) # authored by curtis gach
+	scrollbar = Scrollbar(historyFrame) # authored by curtis gach
+	scrollbar.pack(side = RIGHT, fill = Y) # authored by curtis gach
+	mylist = Listbox(historyFrame, yscrollcommand = scrollbar.set) # authored by curtis gach
+	mylist.pack(side = LEFT, fill = BOTH) # authored by curtis gach
 	p1w = Piece(root, chessboard, 'pawn_w', 'a2') # add pieces in default (original) organization, white starts here
 	p2w = Piece(root, chessboard, 'pawn_w', 'b2') # there's definitely a better way to do this, but this is a band-aid solution that will hopefully be replaced later
 	p3w = Piece(root, chessboard, 'pawn_w', 'c2')
