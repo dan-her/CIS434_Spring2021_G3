@@ -1,2 +1,2 @@
-contributions made by "John Fedora" are made by Daniel Hercik, I set that as my username on my computer and I can't change it easily.
-It shows that name because I'm using command-line git to access this repo and not an api or app.
+contributions committed by dan-her and "authored" by John Fedora are authored by dan-her, but we can't seem to fix that.
+contributions authored by other team members and "commited" by dan-her were altered by changing the commit history, so that dan-her's name would be on the commits made under the pseudonym.
