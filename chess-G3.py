@@ -107,9 +107,10 @@ if __name__ == '__main__':
 
 	historyFrame = LabelFrame(root, text="history frame", padx = 5, pady = 5) # authored by curtis gach
 	historyFrame.grid(row = 0, column = 1, padx=10, pady=10) # authored by curtis gach
-	scrollbar = Scrollbar(historyFrame) # authored by curtis gach
-	scrollbar.pack(side = RIGHT, fill = Y) # authored by curtis gach
+	scrollbar = Scrollbar(historyFrame, orient = VERTICAL) # authored by curtis gach
 	mylist = Listbox(historyFrame, yscrollcommand = scrollbar.set) # authored by curtis gach
+	scrollbar.config(command = mylist.yview)
+	scrollbar.pack(side = RIGHT, fill = Y) # authored by curtis gach
 	mylist.pack(side = LEFT, fill = BOTH) # authored by curtis gach
 
 
