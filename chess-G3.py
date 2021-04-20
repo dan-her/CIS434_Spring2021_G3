@@ -72,21 +72,12 @@ class GameBackend():
 		self.currentOpponent = 0
 
 	def quickMovemaker(self): # chooses the first move it can (deterministic)
-		if (self.board.is_checkmate()):
-			terminal.set("GAME OVER")#cg
-			time.sleep(2)
-			# board reset function call of some sort 
-		else:
-			for move in self.board.legal_moves:
-				self.board.push(move)
-				clickt(str(move))
-				break;
+		for move in self.board.legal_moves:
+			self.board.push(move)
+			clickt(str(move))
+			break;
 
 	def randomMovemaker(self): # randomly generates a move
-		if (self.board.is_checkmate()):
-			terminal.set("GAME OVER")#cg
-			time.sleep(2)
-			# board reset function call of some sort 
 		i = 0
 		moves = self.board.legal_moves.count()
 		if moves != 0:
@@ -100,10 +91,6 @@ class GameBackend():
 					i += 1
 
 	def lazy(self): # moves the piece it can move the least
-		if (self.board.is_checkmate()):
-			terminal.set("GAME OVER")#cg
-			time.sleep(2)
-			# board reset function call of some sort 
 		letterNumbers = {'a':1.0, 'b':2.0, 'c':3.0, 'd':4.0, 'e':5.0, 'f':6.0, 'g':7.0, 'h':8.0} # dict for distance figuring
 		chosen = ''
 		distance = 999.9 # no legal move will be so long
@@ -142,9 +129,9 @@ class GameBackend():
 			if (newDistance < distance): # actually use the shortest one
 				distance = newDistance
 				chosen = move
-			
-		self.board.push(chosen) # put the move on the board
-		clickt(str(chosen))            
+		if (chosen != ''):
+			self.board.push(chosen) # put the move on the board
+			clickt(str(chosen))            
 		
 	def squareUp(self, square):
 		if self.from_square:
@@ -179,7 +166,10 @@ class GameBackend():
 			if (self.board.is_game_over()):
 				if self.board.is_checkmate():		
 					print("game over")
-					terminal.set("GAME OVER: "+self.board.turn + 'WINS')#cg
+					if (self.board.turn == False):
+						terminal.set("GAME OVER: White wins!")#cg
+					elif (self.board.turn == True):
+						terminal.set("GAME OVER: Black wins!")
 				elif self.board.is_stalemate():
 					print('stalemate')
 					terminal.set('STALEMATE') #cg
