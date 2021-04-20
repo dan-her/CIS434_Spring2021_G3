@@ -1,21 +1,38 @@
 import tkinter as tk
 from tkinter import *
 import chess
+import random
 from PIL import ImageTk, Image
 
 # global variables
 squaresCount = 0 # for gameBackend
 initPos = '' # for gameBackend
+opponentCPU = 0 # the values of this will hopefully give different CPU opponents
 Color = 1
 
 
 
 class gameBackend():
     def __init__(self, board, gui):
-    	self.gui = gui
-    	self.board = board
+        self.gui = gui
+        self.board = board
 
-    def squareUp(self, event, square):
+    def randomMovemaker(self):
+        i = 0
+        chosen = random.randrange(0, 100, 1)
+        chosen = chosen % self.board.legal_moves.count()
+        for move in self.board.legal_moves:
+            if (i == chosen):
+                self.board.push(move) # put the move on the board
+                tempPiece = self.gui.getSquare(str(move)[:2]).piece
+                self.gui.getSquare(str(move)[2:]).piece = Piece(self.gui, tempPiece.name, str(move)[2:])
+                self.gui.getSquare(str(move)[:2]).piece = None
+                clickt(str(move))
+                break;
+            else:
+                i += 1
+
+    def squareUp(self, event, square): # what is "event?" it's never used in here
         global initPos
         global squaresCount
         if (squaresCount == 1):
@@ -23,25 +40,23 @@ class gameBackend():
             squaresCount = 0
             print(initPos)
             if (chess.Move.from_uci(initPos) in self.board.legal_moves): # check if the move is legal
-            	x = chess.Move.from_uci(initPos) # create the move
-            	self.board.push(x) # put the move on the board
-            	tempPiece = self.gui.getSquare(initPos).piece
-            	self.gui.getSquare(square).piece = Piece(self.gui, tempPiece.name, square)
-            	self.gui.getSquare(initPos).piece = None
-            	clickt(initPos)
-
+                x = chess.Move.from_uci(initPos) # create the move
+                self.board.push(x) # put the move on the board
+                tempPiece = self.gui.getSquare(initPos).piece
+                self.gui.getSquare(square).piece = Piece(self.gui, tempPiece.name, square)
+                self.gui.getSquare(initPos).piece = None
+                clickt(initPos)
+                if (opponentCPU == 1): # call the random opponent
+                    self.randomMovemaker()
             else:
                 print("error: bad move")
-                terminal.set("error: bad move")#cg
             if (self.board.is_checkmate()):
                 print("g'over")
-                terminal.set("GAME OVER")#cg
             print(self.board)
         else:
             initPos = square
             squaresCount = 1
-            
-        
+
 
 class ChessBoardGUI():
 	def __init__(self, root):
@@ -153,6 +168,7 @@ if __name__ == '__main__':
 	Piece(chessboard, 'bishop_b', 'f8')
 	Piece(chessboard, 'knight_b', 'g8')
 	Piece(chessboard, 'rook_b', 'h8')
+	opponentCPU = 1
 	
 	root.mainloop()
 	print('Exiting...')
