@@ -1,6 +1,7 @@
 import math
 import time
 import sys
+import os
 import random
 import chess
 from tkinter import *
@@ -308,6 +309,10 @@ def opponentSet(ID):
 	global opponentCPU
 	opponentCPU = ID
 
+def reset():
+    restart = sys.executable
+    os.execl(restart, restart, * sys.argv)
+
 
 if __name__ == '__main__':
 	root = InitWindow()
@@ -326,7 +331,7 @@ if __name__ == '__main__':
 	
 	mb = Menu(root)
 	gamemenu = Menu(mb)
-	gamemenu.add_command(label='reset', command=lambda: print('resetting'))
+	gamemenu.add_command(label='reset', command=lambda: reset())
 	gamemenu.add_command(label='exit', command=lambda: sys.exit())
 	mb.add_cascade(menu=gamemenu, label='Game')
 	opponentsmenu = Menu(mb)
