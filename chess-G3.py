@@ -7,53 +7,45 @@ import chess
 from tkinter import *
 from PIL import ImageTk, Image
 
-opponentCPU = 0 # the values of this will hopefully give different CPU opponents
 Color = 1
 PieceImages = {}
 
 def PromoteMenu(backend):
 	popup = Toplevel()
-	popup.title('promote')
-
+	popup.title('Promote')
 	def promoteKnight():
-		backend.promote(chess.KNIGHT)
+		backend.doPromote(chess.KNIGHT)
 		popup.destroy()
 	def promoteBishop():
-		backend.promote(chess.BISHOP)
+		backend.doPromote(chess.BISHOP)
 		popup.destroy()
 	def promoteRook():
-		backend.promote(chess.ROOK)
+		backend.doPromote(chess.ROOK)
 		popup.destroy()
 	def promoteQueen():
-		backend.promote(chess.QUEEN)
+		backend.doPromote(chess.QUEEN)
 		popup.destroy()
-
 	Label(popup, text='Promote pawn?').pack()
-	k = Button(popup, text='Knight', command=promoteKnight)
-	k.pack()
-	b = Button(popup, text='Bishop', command=promoteBishop)
-	b.pack()
-	r = Button(popup, text='Rook', command=promoteRook)
-	r.pack()
-	q = Button(popup, text='Queen', command=promoteQueen)
-	q.pack()
-
+	Button(popup, text='Knight', command=promoteKnight).pack()
+	Button(popup, text='Bishop', command=promoteBishop).pack()
+	Button(popup, text='Rook', command=promoteRook).pack()
+	Button(popup, text='Queen', command=promoteQueen).pack()
 
 class GameBackend():
-
-	def promote(self, piece):
+	def doPromote(self, piece):
 		cSquare1 = chess.parse_square(self.from_square.name)
 		cSquare2 = chess.parse_square(self.to_square.name)
 		move = chess.Move(from_square = cSquare1, to_square = cSquare2, promotion=piece)
 		if (move in self.board.legal_moves): # check if the move is legal
 				self.board.push(move) # put the move on the board
-				self.from_square.chessboard.RefreshPieces()
+				self.from_square = None
+				self.to_square.chessboard.RefreshPieces()
 				clickt(move)
-				if (opponentCPU == 1): # call the random opponent
+				if (self.currentOpponent == 1): # call the random opponent
 					self.randomMovemaker()
-				elif (opponentCPU == 2):
+				elif (self.currentOpponent == 2):
 					self.quickMovemaker()
-				elif (opponentCPU == 3):
+				elif (self.currentOpponent == 3):
 					self.lazy()
 		else:
 			print("error: bad move")
@@ -63,7 +55,6 @@ class GameBackend():
 			print("game over")
 			terminal.set("GAME OVER")#cg
 		print(self.board)
-
 
 	def __init__(self, board):
 		self.board = board
@@ -153,11 +144,11 @@ class GameBackend():
 				self.board.push(move) # put the move on the board
 				self.from_square = None
 				clickt(move)
-				if (opponentCPU == 1): # call the random opponent
+				if (self.currentOpponent == 1): # call the random opponent
 					self.randomMovemaker()
-				elif (opponentCPU == 2):
+				elif (self.currentOpponent == 2):
 					self.quickMovemaker()
-				elif (opponentCPU == 3):
+				elif (self.currentOpponent == 3):
 					self.lazy()
 			else:
 				print("error: bad move")
@@ -298,8 +289,7 @@ def clickt(item):
 		Color = 1
 		
 def opponentSet(ID):
-	global opponentCPU
-	opponentCPU = ID
+	backendBoard.currentOpponent = ID
 
 def reset():
 	backendBoard.board.reset()
@@ -311,19 +301,24 @@ def reset():
 	terminal.set("Turn: White")
 
 def tryundo():
-	backendBoard.board.pop()
-	if opponentCPU > 0:
+	try:
 		backendBoard.board.pop()
-	chessboard.RefreshPieces()
-	global Color
-	if (Color == 1):
-		terminal.set("Turn: Black") 
-		Color = 0
+		mylist.delete(mylist.size()-1)
+		global Color
+		if backendBoard.currentOpponent > 0:
+			backendBoard.board.pop()
+			mylist.delete(mylist.size()-1)
+		elif Color == 1:
+			terminal.set("Turn: Black") 
+			Color = 0
+		else:
+			terminal.set("Turn: White")
+			Color = 1
+	except IndexError:
+		return
 	else:
-		terminal.set("Turn: White")
-		Color = 1
-	mylist.delete(mylist.size()-1)
-
+		chessboard.RefreshPieces()
+		
 if __name__ == '__main__':
 	root = InitWindow()
 	InitImages()
