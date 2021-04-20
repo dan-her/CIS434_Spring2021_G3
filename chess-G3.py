@@ -39,6 +39,8 @@ class GameBackend():
 		if (move in self.board.legal_moves): # check if the move is legal
 				self.board.push(move) # put the move on the board
 				self.from_square = None
+				self.to_square.chessboard.DeselectSquare()
+				self.to_square.chessboard.UnmarkSquares()
 				self.to_square.chessboard.RefreshPieces()
 				clickt(move)
 				if (self.currentOpponent == 1): # call the random opponent
@@ -50,10 +52,16 @@ class GameBackend():
 		else:
 			print("error: bad move")
 			terminal.set("error: bad move")#cg
+			self.from_square.chessboard.DeselectSquare()
+			self.from_square.chessboard.UnmarkSquares()
+			self.to_square.chessboard.RefreshPieces()
 			self.from_square = None
 		if (self.board.is_game_over()):
 			print("game over")
 			terminal.set("GAME OVER")#cg
+			self.from_square.chessboard.DeselectSquare()
+			self.from_square.chessboard.UnmarkSquares()
+			self.to_square.chessboard.RefreshPieces()
 		print(self.board)
 
 	def __init__(self, board):
@@ -155,8 +163,12 @@ class GameBackend():
 			else:
 				print("error: bad move")
 				terminal.set("error: bad move")#cg
+				self.from_square.chessboard.DeselectSquare()
+				self.from_square.chessboard.UnmarkSquares()
 				self.from_square = None
 			if (self.board.is_game_over()):
+				self.from_square.chessboard.DeselectSquare()
+				self.from_square.chessboard.UnmarkSquares()
 				if self.board.is_checkmate():		
 					print("game over")
 					if (self.board.turn == False):
@@ -171,9 +183,10 @@ class GameBackend():
 		else:
 			if square.piece is not None:
 				if (square.piece.name.endswith('w') and self.board.turn == chess.WHITE) or (square.piece.name.endswith('b') and self.board.turn == chess.BLACK): 
-					self.from_square = square
 					possiblemoves = [move.uci()[2:4] for move in self.board.legal_moves if square.name in move.uci()]
-					print(possiblemoves)
+					if len(possiblemoves) == 0:
+						return
+					self.from_square = square
 					square.chessboard.SelectSquare(square)
 					square.chessboard.MarkSquares(possiblemoves)
 			
