@@ -8,7 +8,7 @@ from tkinter import *
 from PIL import ImageTk, Image
 
 Color = 1
-PieceImages = {}
+Images = {}
 
 def PromoteMenu(backend):
 	popup = Toplevel()
@@ -142,6 +142,8 @@ class GameBackend():
 			move = chess.Move(from_square = cSquare1, to_square = cSquare2)
 			if (move in self.board.legal_moves): # check if the move is legal
 				self.board.push(move) # put the move on the board
+				self.from_square.chessboard.DeselectSquare()
+				self.from_square.chessboard.UnmarkSquares()
 				self.from_square = None
 				clickt(move)
 				if (self.currentOpponent == 1): # call the random opponent
@@ -168,7 +170,12 @@ class GameBackend():
 			print(self.board)
 		else:
 			if square.piece is not None:
-				self.from_square = square
+				if (square.piece.name.endswith('w') and self.board.turn == chess.WHITE) or (square.piece.name.endswith('b') and self.board.turn == chess.BLACK): 
+					self.from_square = square
+					possiblemoves = [move.uci()[2:4] for move in self.board.legal_moves if square.name in move.uci()]
+					print(possiblemoves)
+					square.chessboard.SelectSquare(square)
+					square.chessboard.MarkSquares(possiblemoves)
 			
 
 
@@ -177,7 +184,22 @@ class ChessBoardGUI():
 		self.backend = backend
 		self.root = root
 		self.squares = [[Square(self, x, y) for x in range(8)] for y in range(8)]
+		self.selected = None
+		self.marked = []
 		self.RefreshPieces()
+
+	def UnmarkSquares(self):
+		self.marked = []
+
+	def DeselectSquare(self):
+		self.selected = None
+
+	def SelectSquare(self, square):
+		self.selected = square
+
+	def MarkSquares(self, squares):
+		for s in squares:
+			self.marked.append(self.getSquare(s))
 
 	def RefreshPieces(self):
 		for i in range(8):
@@ -209,7 +231,16 @@ class ChessBoardGUI():
 			else:
 				piece += '_b'
 
+
 			self.getSquare(name).piece = Piece(self, piece, name)
+
+			
+		if self.selected:
+			self.selected.canvas.create_image(32, 32, image=Images['selector'])
+		if self.marked:
+			for square in self.marked:
+				square.canvas.create_image(32, 32, image=Images['marker'])
+
 
 
 
@@ -252,7 +283,7 @@ class Square():
 class Piece():
 	def __init__(self, chessboard, pieceName, squareName):
 		self.name = pieceName
-		self.image = PieceImages[self.name]
+		self.image = Images[self.name]
 		chessboard.getSquare(squareName).canvas.create_image(32,32,image=self.image)
 		chessboard.getSquare(squareName).piece = self
 
@@ -267,8 +298,16 @@ def InitImages():
 		imagew = Image.open('assets//' + wName + '.png')
 		imagew.thumbnail((48, 48))
 		tkImageW = ImageTk.PhotoImage(imagew)
-		PieceImages[bName] = tkImageB
-		PieceImages[wName] = tkImageW
+		Images[bName] = tkImageB
+		Images[wName] = tkImageW
+
+	selector = Image.open('assets//selector.png')
+	selector.thumbnail((56, 56))
+	Images['selector'] = ImageTk.PhotoImage(selector)
+
+	marker = Image.open('assets//marker.png')
+	marker.thumbnail((56, 56))
+	Images['marker'] = ImageTk.PhotoImage(marker)
 
 def InitWindow():
 	root = Tk()
