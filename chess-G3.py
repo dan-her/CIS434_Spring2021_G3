@@ -1,6 +1,9 @@
 import tkinter as tk
 from tkinter import *
 import chess
+import math
+import time
+import sys
 import random
 from PIL import ImageTk, Image
 
@@ -11,15 +14,32 @@ opponentCPU = 0 # the values of this will hopefully give different CPU opponents
 Color = 1
 
 
-
 class gameBackend():
     def __init__(self, board, gui):
         self.gui = gui
         self.board = board
+        
+    def quickMovemaker(self): # chooses the first move it can (deterministic)
+        if (self.board.is_checkmate()):
+            terminal.set("GAME OVER")#cg
+            time.sleep(2)
+            # board reset function call of some sort 
+        else:
+            for move in self.board.legal_moves:
+                self.board.push(move)
+                tempPiece = self.gui.getSquare(str(move)[:2]).piece
+                self.gui.getSquare(str(move)[2:]).piece = Piece(self.gui, tempPiece.name, str(move)[2:])
+                self.gui.getSquare(str(move)[:2]).piece = None
+                clickt(str(move))
+                break;
 
-    def randomMovemaker(self):
+    def randomMovemaker(self): # randomly generates a move
+        if (self.board.is_checkmate()):
+            terminal.set("GAME OVER")#cg
+            time.sleep(2)
+            # board reset function call of some sort 
         i = 0
-        chosen = random.randrange(0, 100, 1)
+        chosen = random.randrange(100)
         chosen = chosen % self.board.legal_moves.count()
         for move in self.board.legal_moves:
             if (i == chosen):
@@ -32,9 +52,61 @@ class gameBackend():
             else:
                 i += 1
 
+    def lazy(self): # moves the piece it can move the least
+        if (self.board.is_checkmate()):
+            terminal.set("GAME OVER")#cg
+            time.sleep(2)
+            # board reset function call of some sort 
+        letterNumbers = {'a':1.0, 'b':2.0, 'c':3.0, 'd':4.0, 'e':5.0, 'f':6.0, 'g':7.0, 'h':8.0} # dict for distance figuring
+        chosen = ''
+        distance = 999.9 # no legal move will be so long
+        distX = 0.0 # values for doing distance calculations
+        distY = 0.0
+        for move in self.board.legal_moves:
+            startxy = [letterNumbers[str(move)[0]], float(str(move)[1])]
+            endxy = [letterNumbers[str(move)[2]], float(str(move)[3])]
+            
+            # diagonals are theoretically more distance than the 4-way straight options, but we want to keep them even
+            if ((startxy[0] != endxy[0]) and ( (startxy[0] == (endxy[0] - 1)) or (endxy[0] == (startxy[0]-1)) )):
+                distX = 1.0
+            else:
+                distX = abs( startxy[0]-endxy[0] )
+            if ((startxy[1] != endxy[1]) and  ( (startxy[1] == (endxy[1] - 1)) or (endxy[1] == (startxy[1]-1)) )):
+                distY = 1.0
+            else:
+                distY = abs( startxy[1]-endxy[1] ) 
+            
+            #enforce the distance equalization for diagonals
+            if (distX == distY):
+                newDistance = distX
+            else:
+                newDistance = math.sqrt( math.pow( distX, 2 ) +  math.pow( distY, 2 ) )
+                
+            print("start pos:", startxy[0], startxy[1] , "end pos:", endxy[0], endxy[1])
+            print("distX: " , distX, "distY: ", distY)
+            print("new distance: ", newDistance)
+            if (newDistance == distance): # non-determinism maker
+                coinflip = random.randrange(2) # call it
+                print("flipped!")
+                if (coinflip == 0): # if we get a 0, the old one is replaced
+                    print("result was 0")
+                    distance = newDistance
+                    chosen = move
+            if (newDistance < distance): # actually use the shortest one
+                distance = newDistance
+                chosen = move
+            
+        self.board.push(chosen) # put the move on the board
+        tempPiece = self.gui.getSquare(str(chosen)[:2]).piece
+        self.gui.getSquare(str(chosen)[2:]).piece = Piece(self.gui, tempPiece.name, str(chosen)[2:])
+        self.gui.getSquare(str(chosen)[:2]).piece = None
+        clickt(str(chosen))            
+        
+
     def squareUp(self, event, square): # what is "event?" it's never used in here
         global initPos
         global squaresCount
+        global opponentCPU
         if (squaresCount == 1):
             initPos += square # the total move for the board (i.e. "e2e4")
             squaresCount = 0
@@ -48,12 +120,17 @@ class gameBackend():
                 clickt(initPos)
                 if (opponentCPU == 1): # call the random opponent
                     self.randomMovemaker()
+                elif (opponentCPU == 2):
+                    self.quickMovemaker()
+                elif (opponentCPU == 3):
+                    self.lazy()
             else:
                 print("error: bad move")
                 terminal.set("error: bad move")#cg
             if (self.board.is_checkmate()):
                 print("g'over")
                 terminal.set("GAME OVER")#cg
+                
             print(self.board)
         else:
             initPos = square
@@ -127,6 +204,11 @@ def clickt(item): # authored by curtis gach
 		
 	
 
+def opponentSet(ID):
+    global opponentCPU
+    opponentCPU = ID
+
+
 if __name__ == '__main__':
 	root = InitWindow()
 	boardFrame = Frame(root) # authored by curtis gach
@@ -141,7 +223,21 @@ if __name__ == '__main__':
 	scrollbar.config(command = mylist.yview)
 	scrollbar.pack(side = RIGHT, fill = Y) # authored by curtis gach
 	mylist.pack(side = LEFT, fill = BOTH) # authored by curtis gach
-
+	
+	mb = Menu(root)
+	gamemenu = Menu(mb)
+	gamemenu.add_command(label='reset', command=lambda :print('resetting'))
+	gamemenu.add_command(label='exit', command=lambda :sys.exit())
+	mb.add_cascade(menu=gamemenu, label='Game')
+	opponentsmenu = Menu(mb)
+	opponentsmenu.add_command(label='player', command=lambda : opponentSet(0))
+	opponentsmenu.add_command(label='random', command=lambda :  opponentSet(1))
+	opponentsmenu.add_command(label='ordered', command=lambda :  opponentSet(2))
+	opponentsmenu.add_command(label='lazy', command=lambda :  opponentSet(3))
+	
+	mb.add_cascade(menu=opponentsmenu, label='Opponents')
+	root.configure(menu=mb)
+	
 	terminalFrame = LabelFrame(root, text = "Terminal")#cg
 	terminalFrame.grid(row = 1, column = 0, padx=10, pady=10)#cg
 	terminal = StringVar()#cg
@@ -170,7 +266,6 @@ if __name__ == '__main__':
 	Piece(chessboard, 'bishop_b', 'f8')
 	Piece(chessboard, 'knight_b', 'g8')
 	Piece(chessboard, 'rook_b', 'h8')
-	opponentCPU = 1 # patchwork solution to not having a selection GUI yet
 	
 	root.mainloop()
 	print('Exiting...')
