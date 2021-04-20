@@ -47,6 +47,7 @@ class GameBackend():
 		move = chess.Move(from_square = cSquare1, to_square = cSquare2, promotion=piece)
 		if (move in self.board.legal_moves): # check if the move is legal
 				self.board.push(move) # put the move on the board
+				self.from_square.chessboard.RefreshPieces()
 				clickt(move)
 				if (opponentCPU == 1): # call the random opponent
 					self.randomMovemaker()
@@ -58,7 +59,7 @@ class GameBackend():
 			print("error: bad move")
 			terminal.set("error: bad move")#cg
 			self.from_square = None
-		if (self.board.is_checkmate()):
+		if (self.board.is_game_over()):
 			print("game over")
 			terminal.set("GAME OVER")#cg
 		print(self.board)
@@ -87,15 +88,16 @@ class GameBackend():
 			time.sleep(2)
 			# board reset function call of some sort 
 		i = 0
-		chosen = random.randrange(100)
-		chosen = chosen % self.board.legal_moves.count()
-		for move in self.board.legal_moves:
-			if (i == chosen):
-				self.board.push(move) # put the move on the board
-				clickt(str(move))
-				break;
-			else:
-				i += 1
+		moves = self.board.legal_moves.count()
+		if moves != 0:
+			chosen = int(random.randrange(moves))
+			for move in self.board.legal_moves:
+				if (i == chosen):
+					self.board.push(move) # put the move on the board
+					clickt(str(move))
+					break;
+				else:
+					i += 1
 
 	def lazy(self): # moves the piece it can move the least
 		if (self.board.is_checkmate()):
@@ -149,12 +151,13 @@ class GameBackend():
 			if self.from_square == square:
 				self.from_square = None
 				return
+
 			self.to_square = square
 			cSquare1 = chess.parse_square(self.from_square.name)
 			cSquare2 = chess.parse_square(self.to_square.name)
 
 			if 'pawn' in self.from_square.piece.name:
-				if self.to_square.name[1] == '8' or self.to_square.name[1] == '1':
+				if (self.to_square.name[1] == '8' and self.board.turn == chess.WHITE) or (self.to_square.name[1] == '1' and self.board.turn == chess.BLACK):
 					PromoteMenu(self)
 					return
 
@@ -173,9 +176,13 @@ class GameBackend():
 				print("error: bad move")
 				terminal.set("error: bad move")#cg
 				self.from_square = None
-			if (self.board.is_checkmate()):
-				print("game over")
-				terminal.set("GAME OVER")#cg
+			if (self.board.is_game_over()):
+				if self.board.is_checkmate():		
+					print("game over")
+					terminal.set("GAME OVER: "+self.board.turn + 'WINS')#cg
+				elif self.board.is_stalemate():
+					print('stalemate')
+					terminal.set('STALEMATE') #cg
 				
 			print(self.board)
 		else:
@@ -315,6 +322,8 @@ def reset():
 
 def tryundo():
 	backendBoard.board.pop()
+	if opponentCPU > 0:
+		backendBoard.board.pop()
 	chessboard.RefreshPieces()
 	global Color
 	if (Color == 1):
