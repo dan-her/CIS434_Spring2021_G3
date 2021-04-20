@@ -186,10 +186,11 @@ class GameBackend():
 			if (move in self.board.legal_moves): # check if the move is legal
 				self.board.push(move) # put the move on the board
 				tempPiece = self.from_square.piece
+				if self.board.is_capture(move) and self.to_square.piece == None:
+					 self.gui.getSquare(self.to_square.name[0]+str(int(self.to_square.name[1])-1)).piece = None
 				self.to_square.piece = Piece(self.gui, tempPiece.name, square.name)
 				self.from_square.piece = None
 				self.from_square = None
-
 				clickt(move)
 				if (opponentCPU == 1): # call the random opponent
 					self.randomMovemaker()
