@@ -50,8 +50,10 @@ class gameBackend():
                     self.randomMovemaker()
             else:
                 print("error: bad move")
+                terminal.set("error: bad move")#cg
             if (self.board.is_checkmate()):
                 print("g'over")
+                terminal.set("GAME OVER")#cg
             print(self.board)
         else:
             initPos = square
@@ -168,7 +170,7 @@ if __name__ == '__main__':
 	Piece(chessboard, 'bishop_b', 'f8')
 	Piece(chessboard, 'knight_b', 'g8')
 	Piece(chessboard, 'rook_b', 'h8')
-	opponentCPU = 1
+	opponentCPU = 1 # patchwork solution to not having a selection GUI yet
 	
 	root.mainloop()
 	print('Exiting...')
