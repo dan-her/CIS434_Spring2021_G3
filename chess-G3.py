@@ -184,10 +184,10 @@ class GameBackend():
 
 			move = chess.Move(from_square = cSquare1, to_square = cSquare2)
 			if (move in self.board.legal_moves): # check if the move is legal
+				if self.board.is_capture(move) and self.to_square.piece == None:
+					self.gui.getSquare(self.to_square.name[0]+str(int(self.to_square.name[1])-1)).piece = None
 				self.board.push(move) # put the move on the board
 				tempPiece = self.from_square.piece
-				if self.board.is_capture(move) and self.to_square.piece == None:
-					 self.gui.getSquare(self.to_square.name[0]+str(int(self.to_square.name[1])-1)).piece = None
 				self.to_square.piece = Piece(self.gui, tempPiece.name, square.name)
 				self.from_square.piece = None
 				self.from_square = None
@@ -336,10 +336,10 @@ if __name__ == '__main__':
 	gamemenu.add_command(label='exit', command=lambda: sys.exit())
 	mb.add_cascade(menu=gamemenu, label='Game')
 	opponentsmenu = Menu(mb)
-	opponentsmenu.add_command(label='player',  command=lambda: opponentSet(0))
-	opponentsmenu.add_command(label='random',  command=lambda: opponentSet(1))
-	opponentsmenu.add_command(label='ordered', command=lambda: opponentSet(2))
-	opponentsmenu.add_command(label='lazy',    command=lambda: opponentSet(3))
+	opponentsmenu.add_checkbutton(label='player',  command=lambda: opponentSet(0))
+	opponentsmenu.add_checkbutton(label='random',  command=lambda: opponentSet(1))
+	opponentsmenu.add_checkbutton(label='ordered', command=lambda: opponentSet(2))
+	opponentsmenu.add_checkbutton(label='lazy',    command=lambda: opponentSet(3))
 	mb.add_cascade(menu=opponentsmenu, label='Opponents')
 	root.configure(menu=mb) 
 
