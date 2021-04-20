@@ -51,16 +51,6 @@ class GameBackend():
 		move = chess.Move(from_square = cSquare1, to_square = cSquare2, promotion=piece)
 		if (move in self.board.legal_moves): # check if the move is legal
 				self.board.push(move) # put the move on the board
-				tempPiece = self.from_square.piece
-				name = chess.piece_name(piece_type=piece)
-				if self.to_square.name[1] == '8':
-					name += '_w'
-				if self.to_square.name[1] == '1':
-					name += '_b'
-				self.to_square.piece = Piece(self.gui, name, self.to_square.name)
-				self.from_square.piece = None
-				self.from_square = None
-
 				clickt(move)
 				if (opponentCPU == 1): # call the random opponent
 					self.randomMovemaker()
@@ -78,8 +68,7 @@ class GameBackend():
 		print(self.board)
 
 
-	def __init__(self, board, gui):
-		self.gui = gui
+	def __init__(self, board):
 		self.board = board
 		self.from_square = None
 		self.to_square = None
@@ -93,9 +82,6 @@ class GameBackend():
 		else:
 			for move in self.board.legal_moves:
 				self.board.push(move)
-				tempPiece = self.gui.getSquare(str(move)[:2]).piece
-				self.gui.getSquare(str(move)[2:]).piece = Piece(self.gui, tempPiece.name, str(move)[2:])
-				self.gui.getSquare(str(move)[:2]).piece = None
 				clickt(str(move))
 				break;
 
@@ -110,9 +96,6 @@ class GameBackend():
 		for move in self.board.legal_moves:
 			if (i == chosen):
 				self.board.push(move) # put the move on the board
-				tempPiece = self.gui.getSquare(str(move)[:2]).piece
-				self.gui.getSquare(str(move)[2:]).piece = Piece(self.gui, tempPiece.name, str(move)[2:])
-				self.gui.getSquare(str(move)[:2]).piece = None
 				clickt(str(move))
 				break;
 			else:
@@ -163,12 +146,9 @@ class GameBackend():
 				chosen = move
 			
 		self.board.push(chosen) # put the move on the board
-		tempPiece = self.gui.getSquare(str(chosen)[:2]).piece
-		self.gui.getSquare(str(chosen)[2:]).piece = Piece(self.gui, tempPiece.name, str(chosen)[2:])
-		self.gui.getSquare(str(chosen)[:2]).piece = None
 		clickt(str(chosen))            
 		
-	def squareUp(self, event, square):
+	def squareUp(self, square):
 		if self.from_square:
 			if self.from_square == square:
 				self.from_square = None
@@ -184,12 +164,7 @@ class GameBackend():
 
 			move = chess.Move(from_square = cSquare1, to_square = cSquare2)
 			if (move in self.board.legal_moves): # check if the move is legal
-				if self.board.is_capture(move) and self.to_square.piece == None:
-					self.gui.getSquare(self.to_square.name[0]+str(int(self.to_square.name[1])-1)).piece = None
 				self.board.push(move) # put the move on the board
-				tempPiece = self.from_square.piece
-				self.to_square.piece = Piece(self.gui, tempPiece.name, square.name)
-				self.from_square.piece = None
 				self.from_square = None
 				clickt(move)
 				if (opponentCPU == 1): # call the random opponent
@@ -214,34 +189,44 @@ class GameBackend():
 
 
 class ChessBoardGUI():
-
-	def InitPieces(chessboard):
-		for c in Square.SquareLetters:
-			Piece(chessboard, 'pawn_w', c + '2')
-			Piece(chessboard, 'pawn_b', c + '7')
-
-		Piece(chessboard, 'rook_w', 'a1')
-		Piece(chessboard, 'knight_w', 'b1')
-		Piece(chessboard, 'bishop_w', 'c1')
-		Piece(chessboard, 'queen_w', 'd1')
-		Piece(chessboard, 'king_w', 'e1')
-		Piece(chessboard, 'bishop_w', 'f1')
-		Piece(chessboard, 'knight_w', 'g1')
-		Piece(chessboard, 'rook_w', 'h1')
-
-		Piece(chessboard, 'rook_b', 'a8')
-		Piece(chessboard, 'knight_b', 'b8')
-		Piece(chessboard, 'bishop_b', 'c8')
-		Piece(chessboard, 'queen_b', 'd8')
-		Piece(chessboard, 'king_b', 'e8')
-		Piece(chessboard, 'bishop_b', 'f8')
-		Piece(chessboard, 'knight_b', 'g8')
-		Piece(chessboard, 'rook_b', 'h8')
-
-	def __init__(self, root):
+	def __init__(self, root, backend):
+		self.backend = backend
 		self.root = root
 		self.squares = [[Square(self, x, y) for x in range(8)] for y in range(8)]
-		self.InitPieces()
+		self.RefreshPieces()
+
+	def RefreshPieces(self):
+		for i in range(8):
+			for j in range(8):
+				self.squares[i][j].piece = None
+
+		pieces = self.backend.board.piece_map()
+		for k,v in pieces.items():
+			name = chess.square_name(k)
+			color = v.color
+			kind = v.piece_type
+
+			if kind == chess.KING:
+				piece = 'king'
+			elif kind == chess.QUEEN:
+				piece = 'queen'
+			elif kind == chess.ROOK:
+				piece = 'rook'
+			elif kind == chess.KNIGHT:
+				piece = 'knight'
+			elif kind == chess.BISHOP:
+				piece = 'bishop'
+			elif kind == chess.PAWN:
+				piece = 'pawn'
+
+			if color == chess.WHITE:
+				piece += '_w'
+			else:
+				piece += '_b'
+
+			self.getSquare(name).piece = Piece(self, piece, name)
+
+
 
 	# Convert AN name of square into array indices and returns square
 	def getSquare(self, squareName):
@@ -252,6 +237,9 @@ class ChessBoardGUI():
 # An individial square on a chess board
 class Square():
 	SquareLetters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+	def onClick(self, event):
+		backendBoard.squareUp(self)
+		self.chessboard.RefreshPieces()
 
 	def __init__(self, chessboard, x, y):
 		self.name = Square.getSquareName(x, y)
@@ -264,7 +252,7 @@ class Square():
 		self.canvas = Canvas(chessboard.root, bg = bgcolor, width=64, height=64, highlightthickness=0) 
 		# Align to tkinter grid
 		self.canvas.grid(row = y, column = x) 
-		self.canvas.bind('<Button-1>', lambda a: backendBoard.squareUp(self.chessboard, self)) 
+		self.canvas.bind('<Button-1>', self.onClick) 
 
 	def getSquareName(x, y):
 		col = Square.SquareLetters[x]
@@ -314,13 +302,16 @@ def reset():
     restart = sys.executable
     os.execl(restart, restart, * sys.argv)
 
+def tryundo():
+	backendBoard.board.pop()
 
 if __name__ == '__main__':
 	root = InitWindow()
 	boardFrame = Frame(root) 
 	boardFrame.grid(row = 0, column = 0, padx=10, pady=10) 
-	chessboard = ChessBoardGUI(boardFrame)
-	backendBoard = GameBackend(chess.Board(), chessboard) # init backend board
+	backendBoard = GameBackend(chess.Board()) # init backend board
+	chessboard = ChessBoardGUI(boardFrame, backendBoard)
+	
 
 	historyFrame = LabelFrame(root, text = "Move History") 
 	historyFrame.grid(row = 0, column = 1, padx=10, pady=10)
@@ -350,7 +341,7 @@ if __name__ == '__main__':
 	label.pack()#cg
 	terminal.set("Turn: White")#cg
 
-	
+	Button(historyFrame, text='Undo Move', command=tryundo).pack()
 	
 	root.mainloop()
 	print('Exiting...')
