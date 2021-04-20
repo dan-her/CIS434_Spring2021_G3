@@ -9,11 +9,7 @@ from PIL import ImageTk, Image
 
 opponentCPU = 0 # the values of this will hopefully give different CPU opponents
 Color = 1
-
-def resetGame():
-	pass
-
-
+PieceImages = {}
 
 def PromoteMenu(backend):
 	popup = Toplevel()
@@ -198,6 +194,7 @@ class ChessBoardGUI():
 	def RefreshPieces(self):
 		for i in range(8):
 			for j in range(8):
+				self.squares[i][j].canvas.delete('all')
 				self.squares[i][j].piece = None
 
 		pieces = self.backend.board.piece_map()
@@ -267,14 +264,23 @@ class Square():
 class Piece():
 	def __init__(self, chessboard, pieceName, squareName):
 		self.name = pieceName
-		path = "assets//"+pieceName + '.png'
-		image = Image.open(path)
-		image.thumbnail((48, 48))
-		self.imgInternal = ImageTk.PhotoImage(image)
-		chessboard.getSquare(squareName).canvas.create_image(32,32,image=self.imgInternal)
+		self.image = PieceImages[self.name]
+		chessboard.getSquare(squareName).canvas.create_image(32,32,image=self.image)
 		chessboard.getSquare(squareName).piece = self
 
-
+def InitImages():
+	pieces = ['pawn', 'knight', 'bishop', 'rook', 'queen', 'king']
+	for p in pieces:
+		bName = p + '_b'
+		wName = p + '_w'		
+		imageb = Image.open('assets//' + bName + '.png')
+		imageb.thumbnail((48, 48))
+		tkImageB = ImageTk.PhotoImage(imageb)
+		imagew = Image.open('assets//' + wName + '.png')
+		imagew.thumbnail((48, 48))
+		tkImageW = ImageTk.PhotoImage(imagew)
+		PieceImages[bName] = tkImageB
+		PieceImages[wName] = tkImageW
 
 def InitWindow():
 	root = Tk()
@@ -299,20 +305,34 @@ def opponentSet(ID):
 	opponentCPU = ID
 
 def reset():
-    restart = sys.executable
-    os.execl(restart, restart, * sys.argv)
+	backendBoard.board.reset()
+	chessboard.RefreshPieces()
+	while mylist.size() != 0:
+		mylist.delete(mylist.size()-1)
+	global Color
+	Color = 1
+	terminal.set("Turn: White")
 
 def tryundo():
 	backendBoard.board.pop()
+	chessboard.RefreshPieces()
+	global Color
+	if (Color == 1):
+		terminal.set("Turn: Black") 
+		Color = 0
+	else:
+		terminal.set("Turn: White")
+		Color = 1
+	mylist.delete(mylist.size()-1)
 
 if __name__ == '__main__':
 	root = InitWindow()
+	InitImages()
 	boardFrame = Frame(root) 
 	boardFrame.grid(row = 0, column = 0, padx=10, pady=10) 
 	backendBoard = GameBackend(chess.Board()) # init backend board
 	chessboard = ChessBoardGUI(boardFrame, backendBoard)
 	
-
 	historyFrame = LabelFrame(root, text = "Move History") 
 	historyFrame.grid(row = 0, column = 1, padx=10, pady=10)
 	scrollbar = Scrollbar(historyFrame, orient = VERTICAL)
