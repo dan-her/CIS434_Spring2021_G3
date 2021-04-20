@@ -6,6 +6,7 @@ from PIL import ImageTk, Image
 # global variables
 squaresCount = 0 # for gameBackend
 initPos = '' # for gameBackend
+Color = 1
 
 
 
@@ -31,8 +32,10 @@ class gameBackend():
 
             else:
                 print("error: bad move")
+                terminal.set("error: bad move")#cg
             if (self.board.is_checkmate()):
                 print("g'over")
+                terminal.set("GAME OVER")#cg
             print(self.board)
         else:
             initPos = square
@@ -96,16 +99,25 @@ def InitWindow():
 	return root
     
 def clickt(item): # authored by curtis gach
-    mylist.insert(END, item) # authored by curtis gach
+	global Color
+	mylist.insert(ACTIVE, item) # authored by curtis gach
+	if (Color == 1):
+		terminal.set("Turn: Black") # authored by curtis gach
+		Color = 0
+	else:
+		terminal.set("Turn: White") # authored by curtis gach
+		Color = 1
+		
+	
 
 if __name__ == '__main__':
 	root = InitWindow()
-	boardFrame = Frame(root, padx='5', pady='5') # authored by curtis gach
+	boardFrame = Frame(root) # authored by curtis gach
 	boardFrame.grid(row = 0, column = 0, padx=10, pady=10) # authored by curtis gach
 	chessboard = ChessBoardGUI(boardFrame)
 	backendBoard = gameBackend(chess.Board(), chessboard) # init backend board
 
-	historyFrame = LabelFrame(root, text="history frame", padx = 5, pady = 5) # authored by curtis gach
+	historyFrame = LabelFrame(root, text = "Move History") # authored by curtis gach
 	historyFrame.grid(row = 0, column = 1, padx=10, pady=10) # authored by curtis gach
 	scrollbar = Scrollbar(historyFrame, orient = VERTICAL) # authored by curtis gach
 	mylist = Listbox(historyFrame, yscrollcommand = scrollbar.set) # authored by curtis gach
@@ -113,6 +125,12 @@ if __name__ == '__main__':
 	scrollbar.pack(side = RIGHT, fill = Y) # authored by curtis gach
 	mylist.pack(side = LEFT, fill = BOTH) # authored by curtis gach
 
+	terminalFrame = LabelFrame(root, text = "Terminal")#cg
+	terminalFrame.grid(row = 1, column = 0, padx=10, pady=10)#cg
+	terminal = StringVar()#cg
+	label = Label(terminalFrame, width = 64, height = 1, textvariable=terminal)#cg
+	label.pack()#cg
+	terminal.set("Turn: White")#cg
 
 	for c in Square.SquareLetters:
 		Piece(chessboard, 'pawn_w', c + str(2))
