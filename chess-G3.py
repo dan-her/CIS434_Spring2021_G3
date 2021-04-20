@@ -50,8 +50,6 @@ class GameBackend():
 				elif (self.currentOpponent == 3):
 					self.lazy()
 		else:
-			print("error: bad move")
-			terminal.set("error: bad move")#cg
 			self.from_square.chessboard.DeselectSquare()
 			self.from_square.chessboard.UnmarkSquares()
 			self.to_square.chessboard.RefreshPieces()
@@ -135,6 +133,8 @@ class GameBackend():
 	def squareUp(self, square):
 		if self.from_square:
 			if self.from_square == square:
+				self.from_square.chessboard.DeselectSquare()
+				self.from_square.chessboard.UnmarkSquares()
 				self.from_square = None
 				return
 
@@ -143,7 +143,7 @@ class GameBackend():
 			cSquare2 = chess.parse_square(self.to_square.name)
 
 			if 'pawn' in self.from_square.piece.name:
-				if (self.to_square.name[1] == '8' and self.board.turn == chess.WHITE) or (self.to_square.name[1] == '1' and self.board.turn == chess.BLACK):
+				if chess.Move(from_square = cSquare1, to_square = cSquare2, promotion=chess.QUEEN) in self.board.legal_moves:
 					PromoteMenu(self)
 					return
 
@@ -161,8 +161,6 @@ class GameBackend():
 				elif (self.currentOpponent == 3):
 					self.lazy()
 			else:
-				print("error: bad move")
-				terminal.set("error: bad move")#cg
 				self.from_square.chessboard.DeselectSquare()
 				self.from_square.chessboard.UnmarkSquares()
 				self.from_square = None
@@ -376,7 +374,7 @@ if __name__ == '__main__':
 	InitImages()
 	boardFrame = Frame(root) 
 	boardFrame.grid(row = 0, column = 0, padx=10, pady=10) 
-	backendBoard = GameBackend(chess.Board()) # init backend board
+	backendBoard = GameBackend(chess.Board()) 
 	chessboard = ChessBoardGUI(boardFrame, backendBoard)
 	
 	historyFrame = LabelFrame(root, text = "Move History") 
@@ -402,10 +400,10 @@ if __name__ == '__main__':
 
 	terminalFrame = LabelFrame(root, text = "Terminal")#cg
 	terminalFrame.grid(row = 1, column = 0, padx=10, pady=10)#cg
-	terminal = StringVar()#cg
+	terminal = StringVar()
 	label = Label(terminalFrame, width = 64, height = 1, textvariable=terminal)#cg
-	label.pack()#cg
-	terminal.set("Turn: White")#cg
+	label.pack()
+	terminal.set("Turn: White")
 
 	Button(historyFrame, text='Undo Move', command=tryundo).pack()
 	
